@@ -63,10 +63,7 @@ FROM
 	LEFT JOIN account_asset ast ON ast.id = aml.account_asset_id
 	LEFT JOIN res_users ru ON ru.id = aml.write_uid
 WHERE 
-	aml.date >= '2024-05-01' AND aml.date <= '2024-05-24'
-	--AND aa.code = '50220102010001'
-	--AND ca.code = '8201000'
-	AND aml.account_asset_id IS NOT NULL
+	aml.date >= '2024-01-01' AND aml.date <= '2024-07-30'
 ORDER BY
 	am.journal_id,
 	aml.id
