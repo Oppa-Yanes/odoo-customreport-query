@@ -1,5 +1,6 @@
+-- berita acara amandemen per tanggal, untuk cek siapa saja yang diamandemenkan di tanggal tertentu
 SELECT
-        ba.id,
+    ba.id,
 	ba.name,
 	ba.tanggal_ba,
 	ba.tanggal_import,
@@ -37,3 +38,40 @@ ORDER BY
 	ba.tanggal_ba,
 	emp.name
 ;
+
+-- cek id dari karyawan tertentu berdasarkan NIP
+SELECT
+	emp.id,
+	emp.nomor_induk_pegawai,
+	emp.name
+FROM
+	hr_employee emp
+WHERE
+	emp.nomor_induk_pegawai = '1011.010119'
+;
+
+-- cek hak cuti karyawan
+SELECT
+	ct.*
+FROM
+	hr_cuti ct
+WHERE
+	ct.tahun = 2024
+	AND ct.employee_id = 9481
+;
+
+-- update hak cuti karyawan
+UPDATE
+	hr_cuti
+SET
+	jumlah_cuti = 13
+WHERE
+	tahun = 2024
+	AND employee_id = 9481
+;
+
+
+
+
+
+
