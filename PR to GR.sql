@@ -6,7 +6,7 @@ SELECT
 	pr.pr_type,
 	pr.sifat,
 	pr.origin doc_source,
-	prrs.approve_by pr_approve_by,
+	CASE WHEN prrs.approve_by IS NULL THEN '' ELSE prrs.approve_by END AS pr_approve_by,
 	prl.name product_name,
 	prl.product_qty pr_qty,
 	uom.name uom,
@@ -25,12 +25,15 @@ SELECT
 	CASE WHEN poby.id IS NULL THEN '' ELSE regexp_replace(poby.login, '@.*$', '') END AS po_create_by,
 	CASE WHEN vd.id IS NULL THEN '' ELSE vd.name END AS vendor_name,
 	CASE WHEN po.id IS NULL THEN '' ELSE po.po_type END AS po_type,
-	po.date_order po_date,
+	COALESCE(po.date_order::text, '') po_date,
 	CASE WHEN po.id IS NULL THEN '' ELSE po.purchase_status END AS purchase_status,
 	CASE WHEN po.id IS NULL THEN '' ELSE po.state END AS po_state,
-	po.date_approve po_approve_date,
-	rfqrs.approve_by rfq_approve_by,
-	pors.approve_by po_approve_by
+	COALESCE(po.date_approve::text, '') po_approve_date,
+	CASE
+		WHEN rfqrs.approve_by IS NOT NULL THEN rfqrs.approve_by
+		WHEN pors.approve_by IS NOT NULL THEN pors.approve_by 
+		ELSE ''
+	END AS po_approve_by
 FROM
 	purchase_request_line prl
 	LEFT JOIN purchase_request pr ON pr.id = prl.request_id
@@ -62,9 +65,9 @@ FROM
 			', ' ORDER BY rs.sequence) approve_by
 		FROM approval_release_strategy rs LEFT JOIN res_users ru ON ru.id = rs.user_id
 		GROUP BY rs.name
-		) pors ON pors.name = CASE WHEN po.name = rfq_number THEN NULL ELSE po.name END
+		) pors ON pors.name = CASE WHEN po.name = po.rfq_number THEN NULL ELSE po.name END
 WHERE
-	pr.create_date BETWEEN '2024-01-01' AND '2024-07-09'
+	pr.create_date BETWEEN '2024-01-01' AND '2024-07-31'
 ORDER BY 
 	pr.name
 ;
