@@ -1,18 +1,16 @@
 WITH stock_movement AS (
 	SELECT
-		wh.code wh_code,
-		wh.name wh_name,
-		sml.product_id,
-		pt.default_code product_code,
-		pt.name product_name,
-		pc.name product_category,
+		CASE WHEN wh.id IS NULL THEN '' ELSE wh.code||' '||wh.name END AS warehouse,
+		sml.product_id::TEXT product_id,
+		CASE WHEN pt.id IS NULL THEN '' ELSE pt.default_code||' '||pt.name END AS product,
+		COALESCE(pc.name, '') product_category,
 		sml.date,
-		sml.reference,
-		sld.complete_name sent_from,
-		sl.complete_name sent_to,
-		sml.qty_done receive_qty,
+		COALESCE(sml.reference, '') reference,
+		COALESCE(sld.complete_name, '') sent_from,
+		COALESCE(sl.complete_name, '') sent_to,
+		COALESCE(sml.qty_done, 0) receive_qty,
 		0 sent_qty,
-		uom.name uom,
+		COALESCE(uom.name, '') uom,
 		COALESCE(svl.unit_cost,0) unit_price
 	FROM
 		stock_warehouse wh
@@ -29,20 +27,18 @@ WITH stock_movement AS (
 		AND sml.state = 'done'
 	UNION ALL
 	SELECT
-		wh.code wh_code,
-		wh.name wh_name,
-		sml.product_id,
-		pt.default_code product_code,
-		pt.name product_name,
-		pc.name product_category,
+		CASE WHEN wh.id IS NULL THEN '' ELSE wh.code||' '||wh.name END AS warehouse,
+		sml.product_id::TEXT product_id,
+		CASE WHEN pt.id IS NULL THEN '' ELSE pt.default_code||' '||pt.name END AS product,
+		COALESCE(pc.name, '') product_category,
 		sml.date,
-		sml.reference,
-		sl.complete_name sent_from,
-		sld.complete_name sent_to,
+		COALESCE(sml.reference, '') reference,
+		COALESCE(sld.complete_name, '') sent_from,
+		COALESCE(sl.complete_name, '') sent_to,
 		0 receive_qty,
-		sml.qty_done sent_qty,
-		uom.name uom,
-		COALESCE(svl.unit_cost,0)  unit_price
+		COALESCE(sml.qty_done, 0) sent_qty,
+		COALESCE(uom.name, '') uom,
+		COALESCE(svl.unit_cost,0) unit_price
 	FROM
 		stock_warehouse wh
 		LEFT JOIN stock_location sl ON sl.id = wh.lot_stock_id
@@ -64,7 +60,7 @@ FROM
 --WHERE
 --	sm.product_id = '233'
 ORDER BY
-	sm.wh_code,
-	sm.product_name,
+	sm.warehouse,
+	sm.product,
 	sm.date
 ;
