@@ -10,23 +10,23 @@ SELECT
 	--aa.internal_type account_type,
 	--am.id move_id,
 	--am.move_type,
-	CASE WHEN am.name IS NULL THEN '' ELSE am.name END AS move_name,
-	CASE WHEN am.ref IS NULL THEN '' ELSE am.ref END AS reference,
-	CASE WHEN ct.code IS NULL THEN '' ELSE ct.code END AS allocation_code,
+	COALESCE(am.name, '') move_name,
+	COALESCE(am.ref, '') reference,
+	COALESCE(ct.code, '') allocation_code,
 	CASE WHEN ca.id IS NULL THEN '' ELSE ca.code||' - '||ca.name END AS activity,
 	CASE WHEN aml.name IS NULL THEN '' ELSE aml.name END AS description,
 	--aml.partner_id,
-	CASE WHEN rp.name IS NULL THEN '' ELSE rp.name END AS partner_name,
-	CASE WHEN lp.code IS NULL THEN '' ELSE lp.code END AS planted_code,
+	COALESCE(rp.name, '') partner_name,
+	COALESCE(lp.code, '') planted_code,
 	CASE WHEN pp.id IS NULL THEN '' ELSE pp.default_code||' - '||pp.name END AS product,
-	CASE WHEN po.id IS NULL THEN '' ELSE po.name END AS po,	
+	COALESCE(po.name, '') po,
 	CASE WHEN ast.id IS NULL THEN '' ELSE ast.code||' - '||ast.name END AS asset,
-	CASE WHEN bl.code IS NULL THEN '' ELSE bl.code END AS block_code,	
+	COALESCE(bl.code, '') block_code,
 	CASE WHEN vra.id IS NULL THEN '' ELSE vra.code||' - '||vra.name END AS vra,
 	CASE WHEN vra.type IS NULL THEN '' ELSE UPPER(vra.type) END AS vra_type,		
 	CASE WHEN sts.id IS NULL THEN '' ELSE sts.code||' - '||sts.name END AS station,
 	CASE WHEN div.id IS NULL THEN '' ELSE div.code||' - '||div.name END AS division,
-	CASE WHEN div.mark IS NULL THEN '' ELSE div.mark END AS division_mark,			
+	COALESCE(div.mark, '') division_mark,
 	aml.debit,
 	aml.credit,
 	aml.balance,
@@ -34,9 +34,9 @@ SELECT
 	COALESCE(aa.depreciation_exp, FALSE) is_depreciation_exp,
 	COALESCE(aml.is_advanced, FALSE) is_advanced,
 	COALESCE(aml.is_landed_costs_line, FALSE) is_landed_cost,
-	CASE WHEN am.payment_reference IS NULL THEN '' ELSE am.payment_reference END AS payment_reference,
+	COALESCE(am.payment_reference, '') payment_reference,
 	am.invoice_type,
-	CASE WHEN am.sequence_prefix IS NULL THEN '' ELSE am.sequence_prefix END AS asequence_prefix,
+	COALESCE(am.sequence_prefix, '') asequence_prefix,
 	CASE WHEN ale.id IS NULL THEN '' ELSE ale.code||' - '||ale.name END AS allocation_to_estate,
 	CASE WHEN alm.id IS NULL THEN '' ELSE alm.code||' - '||alm.name END AS allocation_to_mill,
 	aml.write_date update_date,
@@ -63,7 +63,7 @@ FROM
 	LEFT JOIN account_asset ast ON ast.id = aml.account_asset_id
 	LEFT JOIN res_users ru ON ru.id = aml.write_uid
 WHERE 
-	aml.date >= '2024-01-01' AND aml.date <= '2024-07-30'
+	aml.date >= '2024-01-01' AND aml.date <= '2024-07-31'
 ORDER BY
 	am.journal_id,
 	aml.id
