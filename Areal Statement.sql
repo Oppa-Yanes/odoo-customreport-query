@@ -16,10 +16,10 @@ SELECT
 	lp.plant_immature_age immature_age,
 	lp.mature_date,
 	lp.plant_mature_age mature_age,
-	bl.block_area,
-	lp.area_coefficient coefficient,
-	lp.planted_area,
-	lp.plant_total,
+	COALESCE(bl.block_area, 0) block_area,
+	COALESCE(lp.area_coefficient, 0) coefficient,
+	COALESCE(lp.planted_area, 0) planted_area,
+	COALESCE(lp.plant_total, 0) plant_total,
 	lp.maturate_time_norm,
 	lp.maturate_time_norm_uom
 FROM
