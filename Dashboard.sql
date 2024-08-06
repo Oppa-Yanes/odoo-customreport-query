@@ -83,3 +83,94 @@ ORDER BY
 	RIGHT('0'||ltrim(pbat.bulan),2),
 	pbat.estate
 ;
+
+-- Produksi TBS, akt vs budget
+
+WITH bp AS (
+	WITH bp AS (
+		SELECT 
+    		bp.budget_year::text AS tahun,
+			LTRIM(bp.budget_month, '0') AS bulan, 
+    		CASE
+				WHEN est.name ~~ '%MUSI%' THEN 'MME' 
+				WHEN est.name ~~ '%LEMATANG%' THEN 'LME' 
+				WHEN est.name ~~ 'PLASMA%' AND est.name ~~ '%1' THEN 'PAM1' 
+				WHEN est.name ~~ 'PLASMA%' AND est.name ~~ '%2' THEN 'PAM2' 
+				ELSE NULL::text
+			END AS estate,
+			est.name AS estate_name,
+    		COALESCE(bp.budget_berat,0) AS budget_berat,
+			COALESCE(bp.budget_janjang,0) AS budget_janjang
+  		FROM 
+    		plantation_budget_allocation bp 
+    		LEFT JOIN plantation_estate est ON est.id = bp.estate_id 
+	)
+	SELECT
+  		bp.tahun,
+		bp.bulan,
+		bp.estate,
+		bp.estate_name,
+		SUM(bp.budget_berat) AS budget_berat,
+		SUM(bp.budget_janjang) AS budget_janjang,
+		SUM(bp.budget_berat) / SUM(bp.budget_janjang) AS bjr
+	FROM
+		bp
+	GROUP BY 
+    	bp.tahun, 
+		bp.bulan,
+		bp.estate,
+		bp.estate_name
+	),
+WITH ap AS (
+	WITH ap AS (
+		SELECT
+  			DATE_PART('year', wb.date_in) AS tahun, 
+  			DATE_PART('month', wb.date_in) AS bulan, 
+  			CASE
+				WHEN est.name ~~ '%MUSI%' THEN 'MME' 
+				WHEN est.name ~~ '%LEMATANG%' THEN 'LME' 
+				WHEN est.name ~~ 'PLASMA%' AND est.name ~~ '%1' THEN 'PAM1' 
+				WHEN est.name ~~ 'PLASMA%' AND est.name ~~ '%2' THEN 'PAM2' 
+				ELSE NULL::text
+  			END AS estate,
+			est.name AS estate_name,
+    		COALESCE(wb.weight,0) AS realisasi_berat
+		FROM
+			weighbridge_ticket wb
+			LEFT JOIN weighbridge_ticket_raw raw ON raw.weighbridge_ticket_id = wb.id
+  			LEFT JOIN plantation_division div ON div.id = wb.plantation_division_id 
+  			LEFT JOIN plantation_estate est ON est.id = div.estate_id 
+		WHERE
+			wb.transaction_type_id = 86
+			AND wb.state = 'valid'
+			AND raw.status_delete = '0'
+	)
+	SELECT
+  		ap.tahun,
+		ap.bulan,
+		ap.estate,
+		ap.estate_name,
+		SUM(ap.realisasi_berat) AS realisasi_berat
+	FROM
+		ap
+	GROUP BY 
+    	ap.tahun, 
+		ap.bulan,
+		ap.estate,
+		ap.estate_name
+)
+SELECT
+  	bp.tahun,
+	bp.bulan,
+	bp.estate,
+	bp.estate_name,
+	bp.budget_berat,
+	bp.budget_janjang,
+	bp.bjr
+FROM
+	bp
+ORDER BY
+  	bp.tahun,
+	bp.bulan,
+	bp.estate
+;
