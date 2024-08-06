@@ -44,7 +44,7 @@ ORDER BY
 
 -- Produksi TBS, akt vs budget
 
-WITH bp AS (
+WITH bprod AS (
 	WITH bp AS (
 		SELECT 
     		bp.budget_year::text AS tahun,
@@ -78,7 +78,7 @@ WITH bp AS (
 		bp.bulan,
 		bp.estate,
 		bp.estate_name
-), ap AS (
+), aprod AS (
 	WITH ap AS (
 		SELECT
   			DATE_PART('year', wb.date_in)::text AS tahun, 
@@ -117,19 +117,19 @@ WITH bp AS (
 		ap.estate_name
 )
 SELECT
-  	bp.tahun,
-	bp.bulan,
-	bp.estate,
-	bp.estate_name,
-	COALESCE(bp.budget_berat,0) budget_berat,
-	COALESCE(bp.budget_janjang,0) budget_janjang,
-	COALESCE(bp.bjr,0) bjr,
-	COALESCE(ap.realisasi_berat,0) realisasi_berat
+  	bprod.tahun,
+	bprod.bulan,
+	bprod.estate,
+	bprod.estate_name,
+	COALESCE(bprod.budget_berat,0) budget_berat,
+	COALESCE(bprod.budget_janjang,0) budget_janjang,
+	COALESCE(bprod.bjr,0) bjr,
+	COALESCE(aprod.realisasi_berat,0) realisasi_berat
 FROM
-	bp
-	LEFT JOIN ap ON ap.tahun = bp.tahun AND ap.bulan = bp.bulan AND ap.estate = bp.estate
+	bprod
+	LEFT JOIN aprod ON aprod.tahun = bprod.tahun AND aprod.bulan = bprod.bulan AND aprod.estate = bprod.estate
 ORDER BY
-  	bp.tahun,
-	RIGHT('0'||TRIM(bp.bulan::TEXT),2),
-	bp.estate
+  	bprod.tahun,
+	RIGHT('0'||TRIM(bprod.bulan::TEXT),2),
+	bprod.estate
 ;
