@@ -42,55 +42,13 @@ ORDER BY
 	b.bulan
 ;
 
------
-
-WITH pbat AS (
-  SELECT 
-    pbat.budget_year::text AS tahun, 
-    --RIGHT('0'||ltrim(pbat.budget_month::text),2) AS bulan, 
-	LTRIM(pbat.budget_month, '0') AS bulan, 
-    CASE
-		WHEN pe.name ~~ '%MUSI%' THEN 'MME' 
-		WHEN pe.name ~~ '%LEMATANG%' THEN 'LME' 
-		WHEN pe.name ~~ 'PLASMA%' AND pe.name ~~ '%1' THEN 'PAM1' 
-		WHEN pe.name ~~ 'PLASMA%' AND pe.name ~~ '%2' THEN 'PAM2' 
-		ELSE NULL::text
-	END AS estate,
-	pe.name AS estate_name,
-    COALESCE(pbat.budget_berat,0) AS budget_berat,
-	COALESCE(pbat.budget_janjang,0) AS budget_janjang
-  FROM 
-    plantation_budget_allocation_temporary pbat 
-    LEFT JOIN plantation_estate pe ON pe.id = pbat.estate_id 
-)
-SELECT
-  	pbat.tahun,
-	pbat.bulan,
-	pbat.estate,
-	pbat.estate_name,
-	SUM(pbat.budget_berat) AS budget_berat,
-	SUM(pbat.budget_janjang) AS budget_janjang,
-	SUM(pbat.budget_berat) / SUM(pbat.budget_janjang) AS bjr
-FROM
-	pbat pbat
-GROUP BY 
-    pbat.tahun, 
-	pbat.bulan,
-	pbat.estate,
-	pbat.estate_name
-ORDER BY 
-    pbat.tahun, 
-	RIGHT('0'||ltrim(pbat.bulan),2),
-	pbat.estate
-;
-
 -- Produksi TBS, akt vs budget
 
 WITH bp AS (
 	WITH bp AS (
 		SELECT 
     		bp.budget_year::text AS tahun,
-			LTRIM(bp.budget_month, '0') AS bulan, 
+			LTRIM(bp.budget_month, '0')::text AS bulan, 
     		CASE
 				WHEN est.name ~~ '%MUSI%' THEN 'MME' 
 				WHEN est.name ~~ '%LEMATANG%' THEN 'LME' 
@@ -120,12 +78,11 @@ WITH bp AS (
 		bp.bulan,
 		bp.estate,
 		bp.estate_name
-	),
-WITH ap AS (
+), ap AS (
 	WITH ap AS (
 		SELECT
-  			DATE_PART('year', wb.date_in) AS tahun, 
-  			DATE_PART('month', wb.date_in) AS bulan, 
+  			DATE_PART('year', wb.date_in)::text AS tahun, 
+  			DATE_PART('month', wb.date_in)::text AS bulan, 
   			CASE
 				WHEN est.name ~~ '%MUSI%' THEN 'MME' 
 				WHEN est.name ~~ '%LEMATANG%' THEN 'LME' 
@@ -164,13 +121,15 @@ SELECT
 	bp.bulan,
 	bp.estate,
 	bp.estate_name,
-	bp.budget_berat,
-	bp.budget_janjang,
-	bp.bjr
+	COALESCE(bp.budget_berat,0) budget_berat,
+	COALESCE(bp.budget_janjang,0) budget_janjang,
+	COALESCE(bp.bjr,0) bjr,
+	COALESCE(ap.realisasi_berat,0) realisasi_berat
 FROM
 	bp
+	LEFT JOIN ap ON ap.tahun = bp.tahun AND ap.bulan = bp.bulan AND ap.estate = bp.estate
 ORDER BY
   	bp.tahun,
-	bp.bulan,
+	RIGHT('0'||TRIM(bp.bulan::TEXT),2),
 	bp.estate
 ;
