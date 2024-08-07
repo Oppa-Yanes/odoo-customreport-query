@@ -1,5 +1,12 @@
 SELECT * FROM weighbridge_ticket 
-WHERE ticket_no = 'SA120240704070' OR ticket_no = 'SA120240704008';
+WHERE 
+	ticket_no = 'SA120240704070' 
+	OR ticket_no = 'SA120240704008'
+	OR ticket_no = 'SA120240702708'
+	OR ticket_no = 'SA120240702709'
+ORDER BY
+	ticket_no
+;
 
 SELECT 
 	wb.*
